@@ -1,45 +1,110 @@
 package semana4;
 
-import v9.ChildrensPrice;
-import v9.Customer;
-import v9.Movie;
-import v9.NewReleasePrice;
-import v9.Price;
-import v9.RegularPrice;
-import v9.Rental;
+
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Scanner;
+
+import demo.Database;
+import vNew.ChildrensPrice;
 
 /***********************************************************
  * Filename: Main.java
  * @author fba 6 de Mai de 2013
  ***********************************************************/
-public abstract class Main
-{
+public abstract class Main {
 
-	/***********************************************************
-	 * @param args
-	 ***********************************************************/
-	public static void main(String[] args) throws IOException {
-        v9.Price regularPrice = new RegularPrice();
-        v9.Price childrensPrice = new ChildrensPrice();
-        Price newReleasePrice = new NewReleasePrice();
+    /***********************************************************
+     * @param args
+     ***********************************************************/
+    public static void main(String[] args) throws IOException {
+        Scanner teclado = new Scanner(System.in);
+        int response = -1;
 
-        v9.Customer who = new Customer("Barack Obama");
-        v9.Movie m1 = new v9.Movie("Life of Amalia", regularPrice);
-        v9.Movie m2 = new v9.Movie("Peter Pan", childrensPrice);
-        v9.Movie m3 = new Movie("Donna del Lago", newReleasePrice);
+        System.out.println("Escolha uma opção:");
+        System.out.println("1 - Criar objetos e gravar");
+        System.out.println("2 - Fazer load da DB\n");
 
-        who.addRental(new v9.Rental(m1, 1));
-        who.addRental(new v9.Rental(m2, 2));
+        response = teclado.nextInt();
+
+        switch (response) {
+            case 1:
+                createAndStoreData();
+                break;
+
+            case 2:
+                loadFromDatabase();
+                break;
+
+            default:
+                System.out.println("Opção inválida.");
+                break;
+        }
+
+        teclado.close();
+    }
+
+    /***********************************************************
+     * Criação de objetos, gravação na BD e geração do HTML
+     ***********************************************************/
+    private static void createAndStoreData() throws IOException {
+        Customer who;
+        who = new Customer("Barack Obama");
+
+        // === Instanciar diferentes tipos de Price ===
+        Price p1 = new RegularPrice();       // Filme normal
+        Movie m1 = new Movie("Life of Amalia", p1);
+
+        Price p2 = new ChildrenPrice();     // Filme infantil
+        Movie m2 = new Movie("Peter Pan", p2);
+
+        Price p3 = new NewReleasePrice();    // Novo lançamento
+        Movie m3 = new Movie("Donna del Lago", p3);
+
+        Price p4 = new BestPrice();          // 🆕 Novo tipo
+        Movie m4 = new Movie("La Belle Epoque", p4);
+
+        Price p5 = new BluRayPrice();        // 🆕 Blu-ray
+        Movie m5 = new Movie("Avatar 2 (Blu-ray)", p5);
+
+        // === Associar Rentals ao cliente ===
+        who.addRental(new Rental(m1, 1));
+        who.addRental(new Rental(m2, 2));
         who.addRental(new Rental(m3, 3));
-        System.out.println( who.statement());
+        who.addRental(new Rental(m4, 2));
+        who.addRental(new Rental(m5, 5));
+
+        // === Grava na “base de dados” ===
+        Database.store(who);
+        Database.close();
+
+        // === Output no terminal ===
+        System.out.println(who.statement());
+
+        // === Geração de ficheiro HTML ===
+        PrintWriter html = new PrintWriter(new FileWriter("webPages/statement.html"));
+        html.println(who.htmlStatement());
+        html.close();
+
+        System.out.println("\nRelatório HTML gravado em 'webPages/statement.html'");
+    }
+
+    /***********************************************************
+     * Carrega dados da “base de dados”
+     ***********************************************************/
+    private static void loadFromDatabase() throws IOException {
+        Customer who = Database.get(Customer.class, "_name", "Barack Obama");
+
+        System.out.println(who.statement());
 
         PrintWriter html = new PrintWriter(new FileWriter("webPages/statement.html"));
         html.println(who.htmlStatement());
         html.close();
-	}
 
+        Database.close();
+
+        System.out.println("\nDados carregados e relatório gerado.");
+    }
 }
