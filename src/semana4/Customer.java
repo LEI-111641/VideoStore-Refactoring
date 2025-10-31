@@ -24,29 +24,53 @@ public class Customer
 
 	public String statement()
 	{
-		double totalAmount = 0;
-		int frequentRenterPoints = 0;
 
 		// header
 		String result = "Rental Record for " + getName() + "\n";
 		
 		for (Rental each: _rentals)
 		{
-            // add bonus for a two day new release rental
-            frequentRenterPoints += getFrequentRenterPoints(each);
-
-            // show figures for this rental
-			result += "\t" + each.getMovie().getTitle() + "\t" + each.getAmount() + "\n";
-			totalAmount += each.getAmount();
+			result += "\t" + each.getMovie().getTitle() + "\t" + each.getMovie().getRentalAmount(each.getDaysRented()) + "\n";
 		}
 
 		// add footer lines
-		result += "Amount owed is " + totalAmount + "\n";
-		result += "You earned " + frequentRenterPoints + " frequent renter points";
+		result += "Amount owed is " + getTotalAmount() + "\n";
+		result += "You earned " + getTotalFrequentRenterPoints() + " frequent renter points";
 		return result;
 	}
 
-    public int getFrequentRenterPoints(Rental each) {
-        return ((each.getMovie().getPriceCode() == Movie.Code.NEW_RELEASE) && each.getDaysRented() > 1) ? 2 : 1;
-    }
+	public String htmlStatement()
+	{
+		// header
+		String result = "<font size=\"5\" face=\"Georgia, Arial, Garamond\" color=\"green\">\n";
+		result += "<h2>Rental Record for <i>" + getName() + "</i></h2>\n";
+
+		result += "<ul>\n";
+		for (Rental each : _rentals)
+			result += "\t<li>" + each.getMovie().getTitle() + "\t" + each.getMovie().getRentalAmount(each.getDaysRented())+"\n";
+		result += "</ul>\n";
+
+		// add footer lines
+		result += "Amount owed is " + getTotalAmount() + "<br>\n";
+		result += "You earned " + getTotalFrequentRenterPoints() + " frequent renter points<br>\n";
+		result += "</font>\n";
+
+		return result;
+	}
+
+	public double getTotalAmount() {
+		double totalAmount = 0;
+		for (Rental each : _rentals)
+			totalAmount += each.getMovie().getRentalAmount(each.getDaysRented());
+		return totalAmount;
+	}
+
+	public int getTotalFrequentRenterPoints() {
+		int frequentRenterPoints = 0;
+		for (Rental each : _rentals)
+			frequentRenterPoints += each.getMovie().getFrequentRentalPoints(each.getDaysRented());
+		return frequentRenterPoints;
+	}
 }
+
+
